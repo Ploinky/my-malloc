@@ -93,17 +93,19 @@ void *combine_free_blocks(struct mem_block *first_block, struct mem_block *secon
 
 void my_allocator_init(void)
 {
-    // clear memory
-    zero_memory(0, HEAP_SIZE);
+        struct mem_block *first_block;
 
-    // set up the entire heap as one empty block
-    struct mem_block *first_block = (struct mem_block*) &heap[0];
-    first_block->previous_block = NULL;
-    first_block->next_block = NULL;
-    first_block->size = HEAP_SIZE - sizeof(struct mem_block);
-    first_block->location = 0;
-    first_block->is_used = false;
-    first_block->block_id = block_counter++;
+        // clear memory
+        zero_memory(0, HEAP_SIZE);
+
+        // set up the entire heap as one empty block
+        first_block = (struct mem_block*) &heap[0];
+        first_block->previous_block = NULL;
+        first_block->next_block = NULL;
+        first_block->size = HEAP_SIZE - sizeof(struct mem_block);
+        first_block->location = 0;
+        first_block->is_used = false;
+        first_block->block_id = block_counter++;
 }
 
 void *my_malloc(size_t req_size)
