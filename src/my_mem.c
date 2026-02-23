@@ -51,7 +51,7 @@ void zero_memory(size_t start_index, size_t count)
 {
         assert(start_index + count <= HEAP_SIZE);
 
-        for (int i = 0; i < count; i++)
+        for (size_t i = 0; i < count; i++)
                 heap[start_index + i] = 0;
 }
 
