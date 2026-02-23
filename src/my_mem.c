@@ -1,7 +1,8 @@
 #include "my_mem.h"
 
-#include <stdio.h>
+#include <assert.h>
 #include <stdbool.h>
+#include <stdio.h>
 
 // total memory size in bytes
 #define HEAP_SIZE 1024
@@ -38,11 +39,54 @@ void print_blocks(void) {
     
 }
 
-void my_allocator_init(void) {
-    // zero out all of the memory for safety
-    for(int i = 0; i < HEAP_SIZE; i++) {
-        heap[i] = 0;
+// zero out part of the heap memory
+// @param start_index index to start deleting at, inclusive
+// @param count number of bytes to zero out
+void zero_memory(size_t start_index, size_t count) {
+    assert(start_index + count <= HEAP_SIZE);
+
+    for(int i = 0; i < count; i++) {
+        heap[start_index + i] = 0;
     }
+}
+
+// combine two free adjacent blocks into one
+// @param first_block pointer to the first block
+// @param second_block pointer to the second block
+// @return a pointer to the new block
+void* combine_free_blocks(mem_block_t* first_block, mem_block_t* second_block) {
+    // both blocks must exist
+    assert(first_block != NULL);
+    assert(second_block != NULL);
+
+    // both blocks must be free
+    assert(!first_block->is_used);
+    assert(!second_block->is_used);
+
+    // the blocks must be adjacent, first_block first
+    assert(first_block->next_block == second_block);
+    assert(second_block->previous_block == first_block);
+
+    // block previously behind second block is now behind first block
+    first_block->next_block = second_block->next_block;
+
+    // if block exists behind second block, it is now behind first block
+    if(first_block->next_block != NULL) {
+        first_block->next_block->previous_block = first_block;
+    }
+
+    // first block increases in size
+    first_block->size += second_block->size + sizeof(mem_block_t);
+
+    // zero out remaining memory of second block
+    zero_memory(second_block->location, second_block->size + sizeof(mem_block_t));
+
+    return first_block;
+}
+
+void my_allocator_init(void) {
+    // clear memory
+    zero_memory(0, HEAP_SIZE);
 
     // set up the entire heap as one empty block
     mem_block_t* first_block = (mem_block_t*) &heap[0];
@@ -96,26 +140,21 @@ void my_free(void* ptr) {
             continue;
         }
 
+        // block is no longer in use
         existing_block->is_used = false;
-
-        for(int i = 0; i < existing_block->size; i++) {
-            heap[existing_block->location + sizeof(mem_block_t) + i] = 0;
-        }
+        // zero out old data
+        zero_memory(existing_block->location + sizeof(mem_block_t), existing_block->size);
 
         // combine this and previous block
         if(existing_block->previous_block != NULL && existing_block->previous_block->is_used == false) {
-            mem_block_t* previous_block = existing_block->previous_block;
-            previous_block->next_block = existing_block->next_block;
-            previous_block->size = previous_block->size + sizeof(mem_block_t) + existing_block->size;
-            existing_block = previous_block;
+            existing_block = combine_free_blocks(existing_block->previous_block, existing_block);
         }
 
+        // combine this and next block
         if(existing_block->next_block != NULL && existing_block->next_block->is_used == false) {
-            mem_block_t* next_block = existing_block->next_block;
-            existing_block->size += sizeof(mem_block_t) + next_block->size;
-            existing_block->next_block = next_block->next_block;
+            existing_block = combine_free_blocks(existing_block, existing_block->next_block);
         }
-
+        
         return;
     }
 }
