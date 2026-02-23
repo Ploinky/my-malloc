@@ -118,20 +118,23 @@ void *my_malloc(size_t req_size)
                 if (existing_block->is_used || existing_block->size < req_size)
                         continue; // block is not useable for this malloc
 
-                struct mem_block *new_block = (struct mem_block*) &heap[existing_block->location + sizeof(struct mem_block) + req_size];
-                new_block->block_id = block_counter++;
-                new_block->size = existing_block->size - sizeof(struct mem_block) - req_size;
-                new_block->is_used = false;
-                new_block->location = existing_block->location + sizeof(struct mem_block) + req_size;
-                new_block->previous_block = existing_block;
-                new_block->next_block = existing_block->next_block;
-                
-                if (new_block->next_block != NULL)
-                        new_block->next_block->previous_block = new_block;
-
-                existing_block->next_block = new_block;
                 existing_block->is_used = true;
-                existing_block->size = req_size;
+
+                if(existing_block->size > req_size + sizeof(struct mem_block)) {
+                        struct mem_block *new_block = (struct mem_block*) &heap[existing_block->location + sizeof(struct mem_block) + req_size];
+                        new_block->block_id = block_counter++;
+                        new_block->size = existing_block->size - sizeof(struct mem_block) - req_size;
+                        new_block->is_used = false;
+                        new_block->location = existing_block->location + sizeof(struct mem_block) + req_size;
+                        new_block->previous_block = existing_block;
+                        new_block->next_block = existing_block->next_block;
+                        
+                        if (new_block->next_block != NULL)
+                                new_block->next_block->previous_block = new_block;
+        
+                        existing_block->next_block = new_block;
+                        existing_block->size = req_size;
+                }
 
                 return &heap[existing_block->location + sizeof(struct mem_block)];
         }
