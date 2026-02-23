@@ -3,6 +3,12 @@
 #include <stdio.h>
 #include <stdbool.h>
 
+// total memory size in bytes
+#define HEAP_SIZE 1024
+
+// heap memory
+static unsigned char heap[HEAP_SIZE];
+
 // used for block ids to improve log output
 static int block_counter = 0;
 
@@ -38,6 +44,7 @@ void my_allocator_init(void) {
         heap[i] = 0;
     }
 
+    // set up the entire heap as one empty block
     mem_block_t* first_block = (mem_block_t*) &heap[0];
     first_block->previous_block = NULL;
     first_block->next_block = NULL;

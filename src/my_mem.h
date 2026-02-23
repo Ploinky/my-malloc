@@ -3,12 +3,6 @@
 
 #include <stddef.h>
 
-// total memory size in bytes
-#define HEAP_SIZE 1024
-
-// heap memory
-static unsigned char heap[HEAP_SIZE];
-
 // inititalize memory
 // must be called before `my_malloc` and/or `my_free`
 void my_allocator_init(void);
