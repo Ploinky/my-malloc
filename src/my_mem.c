@@ -13,7 +13,9 @@ static unsigned char heap[HEAP_SIZE];
 // used for block ids to improve log output
 static int block_counter = 0;
 
-// a single block of memory on the heap
+/*
+ * a single block of memory on the heap
+ */
 struct mem_block {
         struct mem_block *previous_block;
         struct mem_block *next_block;
@@ -40,9 +42,11 @@ void print_blocks(void)
     
 }
 
-// zero out part of the heap memory
-// @param start_index index to start deleting at, inclusive
-// @param count number of bytes to zero out
+/*
+ * zero out part of the heap memory
+ * @param start_index index to start deleting at, inclusive
+ * @param count number of bytes to zero out
+ */
 void zero_memory(size_t start_index, size_t count)
 {
         assert(start_index + count <= HEAP_SIZE);
@@ -51,10 +55,12 @@ void zero_memory(size_t start_index, size_t count)
                 heap[start_index + i] = 0;
 }
 
-// combine two free adjacent blocks into one
-// @param first_block pointer to the first block
-// @param second_block pointer to the second block
-// @return a pointer to the new block
+/*
+ * combine two free adjacent blocks into one
+ * @param first_block pointer to the first block
+ * @param second_block pointer to the second block
+ * @return a pointer to the new block
+ */
 void *combine_free_blocks(struct mem_block *first_block, struct mem_block *second_block)
 {
         // both blocks must exist
