@@ -53,7 +53,7 @@ void* my_malloc(size_t req_size) {
         existing_block != NULL;                                 // continue through all blocks
         existing_block = existing_block->next_block             // next iteration -> next block
     ) {
-        if(existing_block->is_used || existing_block->size << req_size) {
+        if(existing_block->is_used || existing_block->size < req_size) {
             // block is not useable for this malloc
             continue;
         }
@@ -79,11 +79,13 @@ void* my_malloc(size_t req_size) {
 
 void my_free(void* ptr) {
     // TODO trust user ptr or follow the linked list to see if it exists?
-    mem_block_t* existing_block = (mem_block_t*) &heap[0];
-
-    do {
-        if(&heap[existing_block->location + sizeof(mem_block_t)] != ptr) {
-            existing_block = existing_block->next_block;
+    for(
+        mem_block_t* existing_block = (mem_block_t*) &heap[0];
+        existing_block != NULL;
+        existing_block = existing_block->next_block
+    ) {
+        void* existing_block_memory_ptr = &heap[existing_block->location + sizeof(mem_block_t)];
+        if(existing_block_memory_ptr != ptr) {
             continue;
         }
 
@@ -108,5 +110,5 @@ void my_free(void* ptr) {
         }
 
         return;
-    } while(existing_block != NULL);
+    }
 }
